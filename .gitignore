@@ -1,0 +1,22 @@
+# Maven
+target/
+*.jar
+*.war
+*.nar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.db
+*.db-journal

@@ -1,0 +1,43 @@
+name: Build Native Installer
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout del código
+      uses: actions/checkout@v4
+
+    - name: Configurar Java JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Compilar el proyecto con Maven
+      run: mvn clean package -DskipTests
+
+    - name: Ejecutar jpackage para crear el instalador
+      run: |
+        jpackage `
+          --type exe `
+          --input target/dependency/ `
+          --main-jar "eco-clasificador-1.0.jar" `
+          --main-class "org.ecoclasificador.Main" `
+          --name "EcoClassifier" `
+          --dest output/ `
+          --win-dir-chooser `
+          --win-shortcut `
+          --java-options "--enable-native-access=ALL-UNNAMED"
+
+    - name: Subir el instalador a la Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: output/*.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
