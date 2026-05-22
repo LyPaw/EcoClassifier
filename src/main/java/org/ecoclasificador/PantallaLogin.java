@@ -78,7 +78,7 @@ public class PantallaLogin {
             ), CornerRadii.EMPTY, Insets.EMPTY
         )));
 
-        Text titulo = new Text("\u267B\uFE0F EcoClasificador");
+        Text titulo = new Text("\u267B EcoClasificador");
         titulo.setFont(Font.font("Segoe UI", FontWeight.BOLD, 42));
         titulo.setFill(Color.WHITE);
         titulo.setEffect(new DropShadow(8, Color.web("#00000044")));
@@ -116,7 +116,7 @@ public class PantallaLogin {
         errorLabel.setTextFill(Color.RED);
         errorLabel.setFont(Font.font("Segoe UI", 13));
 
-        StackPane btnJugar = crearBoton("\u267B\uFE0F  \u00A1A jugar!", "#4CAF50", 250, 50, 18);
+        StackPane btnJugar = crearBoton("\u267B  \u00A1A jugar!", "#4CAF50", 250, 50, 18);
         Runnable iniciar = () -> {
             String nombre = campoNombre.getText().trim();
             if (nombre.isEmpty()) {
