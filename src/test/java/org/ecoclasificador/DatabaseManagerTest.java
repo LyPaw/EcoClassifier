@@ -17,7 +17,7 @@ class DatabaseManagerTest {
 
     @AfterEach
     void cleanTestData() {
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:ecoclasificador.db");
+        try (Connection conn = DriverManager.getConnection(DatabaseManager.getUrl());
              PreparedStatement ps = conn.prepareStatement("DELETE FROM puntuaciones WHERE nombre LIKE ?")) {
             ps.setString(1, "UTEST_%");
             ps.executeUpdate();
@@ -30,7 +30,7 @@ class DatabaseManagerTest {
     void guardarPuntuacion_insertaRegistro() {
         DatabaseManager.guardarPuntuacion("UTEST_GPT_1", 50, 30);
 
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:ecoclasificador.db");
+        try (Connection conn = DriverManager.getConnection(DatabaseManager.getUrl());
              PreparedStatement ps = conn.prepareStatement(
                  "SELECT COUNT(*) FROM puntuaciones WHERE nombre = ?")) {
             ps.setString(1, "UTEST_GPT_1");
