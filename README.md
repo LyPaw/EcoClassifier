@@ -1,21 +1,23 @@
 # ♻️ EcoClasificador — Juego educativo de reciclaje
 
-**EcoClasificador** es un juego drag-and-drop desarrollado en **JavaFX 24** con **Java 25** que
+**EcoClasificador** es un juego drag-and-drop desarrollado en **JavaFX 24** con **Java 24** que
 pone a prueba tus conocimientos de reciclaje. Arrastra cada residuo al contenedor correcto
 antes de que se acabe el tiempo.
 
+Descarga la última versión portable desde [Releases](https://github.com/LyPaw/EcoClassifier/releases): descomprime y ejecuta `EcoClassifier.exe` sin necesidad de instalación.
+
 ---
 
-## 📦 Requisitos
+## 📦 Requisitos (para desarrollo)
 
-- **Java 25** (JDK 25+)
+- **Java 24+** (JDK 24+)
 - **Maven 3.9+**
 - **JavaFX 24** (se resuelve automáticamente vía Maven)
 - **SQLite 3** (embebido, no requiere instalación)
 
 ---
 
-## 🚀 Cómo ejecutar
+## 🚀 Cómo ejecutar (desarrollo)
 
 ```bash
 mvn javafx:run
@@ -29,6 +31,12 @@ Para compilar sin ejecutar:
 ```bash
 mvn compile
 ```
+
+## 📦 Versión portable (usar sin instalar Java)
+
+Descarga el ZIP de la última [release](https://github.com/LyPaw/EcoClassifier/releases),
+descomprime y ejecuta `EcoClassifier.exe`. La aplicación incluye su propio runtime Java
+y no requiere ninguna instalación previa.
 
 ---
 
@@ -50,8 +58,11 @@ JavaFX/
 ├── pom.xml                           # Build Maven: dependencias y plugins
 ├── ecoclasificador.db                # Base de datos SQLite (se crea sola al ejecutar)
 ├── README.md                         # Este archivo
+├── .github/workflows/release.yml     # CI/CD: build + jpackage + release automático
 │
-├── asset/                            # Recursos multimedia
+├── src/main/resources/
+│   ├── ecoclasificador.db            # DB embebida (se copia a AppData al primer inicio)
+│   └── asset/                        # Recursos multimedia
 │   ├── audio/                        #   Música y efectos de sonido
 │   │   ├── menu_music.mp3            #     Música del menú principal
 │   │   ├── bgmusic.mp3               #     Música durante el juego
@@ -89,9 +100,9 @@ JavaFX/
 ├── src/
 │   ├── main/
 │   │   ├── java/
-│   │   │   ├── module-info.java              # Declaración del módulo Java
 │   │   │   └── org/ecoclasificador/
-│   │   │       ├── Main.java                 # Punto de entrada / orquestador
+│   │   │       ├── Main.java                 # Launcher (no-JavaFX, para jpackage)
+│   │   │       ├── AppPrincipal.java         # Punto de entrada JavaFX / orquestador
 │   │   │       ├── PantallaLogin.java        # Pantalla de inicio (nombre)
 │   │   │       ├── JuegoReciclaje.java       # Controlador principal del juego
 │   │   │       ├── Residuo.java              # Item arrastrable
@@ -326,38 +337,39 @@ vida claro para cada pantalla.
 | Plugin | Propósito |
 |---|---|
 | `javafx-maven-plugin` 0.0.8 | Ejecutar `mvn javafx:run` → lanza la aplicación |
-| `maven-compiler-plugin` 3.12.1 | Compila con Java 25 (source/target 25) |
+| `maven-compiler-plugin` 3.12.1 | Compila con Java 21 (source/target 21) |
 | `maven-surefire-plugin` 3.2.5 | Ejecuta tests con JUnit 5, configurado con `useModulePath=false` para que los tests puedan usar JavaFX desde classpath |
 
 ---
 
-### `module-info.java`
+~~`module-info.java`~~ (eliminado)
 
-```java
-module org.ecoclasificador {
-    requires javafx.controls;
-    requires javafx.media;
-    requires java.sql;
-    exports org.ecoclasificador;
-}
-```
-
-Declara el módulo `org.ecoclasificador` y sus dependencias:
-- **javafx.controls**: todos los componentes gráficos (Stage, Scene, Button, Pane...)
-- **javafx.media**: reproducción de audio (Media, MediaPlayer)
-- **java.sql**: conectividad JDBC (DriverManager, Connection, PreparedStatement)
-
-`exports org.ecoclasificador` hace que el paquete sea accesible desde otros módulos
-(necesario para que los tests puedan usar las clases).
+La aplicación se ejecuta en modo **no-modular** para garantizar la compatibilidad con
+jpackage. JavaFX y SQLite se cargan desde el classpath sin necesidad de declaraciones
+de módulo. La directiva `opens` para reflexión de JavaFX no es necesaria al no haber
+límites de módulo.
 
 ---
 
 ### `Main.java`
 
-**Clase:** `public class Main extends Application`
+**Clase:** `public class Main` (NO extiende Application — necesario para jpackage)
 
-**Propósito:** Punto de entrada de la aplicación. Gestiona las transiciones entre las
-tres pantallas: Login → Juego → Ranking.
+**Propósito:** Launcher de la aplicación. No extiende `Application` para que jpackage
+pueda empaquetarla correctamente. Captura excepciones no manejadas y las escribe en
+`%TEMP%/EcoClassifier-error.log`.
+
+**Método:**
+| Método | Descripción |
+|---|---|
+| `main(String[])` | Punto de entrada. Llama a `AppPrincipal.main()` y registra un `UncaughtExceptionHandler` |
+
+### `AppPrincipal.java`
+
+**Clase:** `public class AppPrincipal extends Application`
+
+**Propósito:** Clase principal de JavaFX. Gestiona las transiciones entre las tres
+pantallas: Login → Juego → Ranking.
 
 **Atributos:**
 
@@ -377,7 +389,7 @@ tres pantallas: Login → Juego → Ranking.
 | `iniciarJuego()` | `private` | Crea JuegoReciclaje, configura callbacks, cambia la Scene |
 | `mostrarRanking()` | `private` | Crea PantallaRanking (desde login) |
 | `mostrarRankingDesdeJuego()` | `private` | Crea PantallaRanking (desde el juego, con callback para volver a jugar) |
-| `main(String[])` | `public static` | Punto de entrada Java: `launch(args)` |
+| `main(String[])` | `public static` | Punto de entrada JavaFX: `launch(AppPrincipal.class, args)` |
 
 **Decisión importante:** PantallaLogin recibe `Consumer<String>` (no `Runnable`)
 para evitar el problema de "variable local no inicializada en lambda" que ocurriría
@@ -731,7 +743,12 @@ espacio del padre, por lo que son directamente comparables.
 
 **Propósito:** Capa de persistencia. Toda la comunicación con SQLite.
 
-**URL de conexión:** `"jdbc:sqlite:ecoclasificador.db"`
+**URL de conexión:** `"jdbc:sqlite:%APPDATA%/EcoClassifier/ecoclasificador.db"`
+
+**Comportamiento:**
+Al iniciar, si el archivo no existe en `%APPDATA%/EcoClassifier/`, se copia
+automáticamente desde los recursos del JAR (incluye datos precargados). Esto permite
+distribuir una base de datos inicial con la aplicación portable.
 
 **Tabla `puntuaciones`:**
 
