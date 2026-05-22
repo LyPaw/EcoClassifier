@@ -3,6 +3,10 @@ name: Build Native Installer
 on:
   release:
     types: [created]
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-windows:
