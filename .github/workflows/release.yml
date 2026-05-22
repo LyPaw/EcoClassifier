@@ -42,11 +42,20 @@ jobs:
           --dest output/ `
           --java-options "--enable-native-access=ALL-UNNAMED"
 
+    - name: Comprimir app-image como portable
+      run: Compress-Archive -Path output/EcoClassifier/ -DestinationPath output/EcoClassifier-Portable.zip
+
     - name: Subir app-image como artifact
       uses: actions/upload-artifact@v4
       with:
         name: EcoClassifier-App
         path: output/EcoClassifier/
+
+    - name: Subir portable zip como artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: EcoClassifier-Portable
+        path: output/EcoClassifier-Portable.zip
 
     - name: Generar instalador EXE
       run: |
@@ -63,10 +72,12 @@ jobs:
         name: EcoClassifier-Installer
         path: output-installer/*.exe
 
-    - name: Subir el instalador a la Release
+    - name: Subir portable y/o instalador a la Release
       if: github.event_name == 'release'
       uses: softprops/action-gh-release@v2
       with:
-        files: output-installer/*.exe
+        files: |
+          output/EcoClassifier-Portable.zip
+          output-installer/*.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
