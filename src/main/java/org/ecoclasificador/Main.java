@@ -1,28 +1,24 @@
 package org.ecoclasificador;
 
-/**
- * Launcher principal de la aplicación EcoClasificador.
- * <p>
- * Esta clase NO extiende {@link javafx.application.Application} para que el
- * empaquetado con jpackage funcione correctamente. Simplemente delega en
- * {@link AppPrincipal#main(String[])}, que a su vez invoca
- * {@link javafx.application.Application#launch(String...)}.
- * <p>
- * Uso:
- * <ul>
- *   <li>Ejecutar como JAR: {@code java -jar eco-clasificador.jar}</li>
- *   <li>Ejecutar con Maven: {@code mvn javafx:run}</li>
- *   <li>Empaquetar: jpackage utiliza esta clase como punto de entrada</li>
- * </ul>
- */
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class Main {
 
-    /**
-     * Punto de entrada de la aplicación. Delega en {@link AppPrincipal#main(String[])}.
-     *
-     * @param args Argumentos de línea de comandos
-     */
     public static void main(String[] args) {
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            try {
+                Path log = Paths.get(System.getProperty("java.io.tmpdir"), "EcoClassifier-error.log");
+                Files.writeString(log, sw.toString());
+            } catch (Exception ex) {
+                System.err.println(sw);
+            }
+        });
         AppPrincipal.main(args);
     }
 }

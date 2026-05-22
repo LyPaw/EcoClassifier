@@ -1,7 +1,12 @@
 package org.ecoclasificador;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.control.Alert;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
@@ -34,16 +39,27 @@ public class AppPrincipal extends Application {
 
     @Override
     public void start(Stage escenario) {
-        this.escenario = escenario;
+        try {
+            this.escenario = escenario;
 
-        Rectangle2D pantalla = Screen.getPrimary().getVisualBounds();
-        anchoPantalla = pantalla.getWidth();
-        altoPantalla  = pantalla.getHeight();
+            Rectangle2D pantalla = Screen.getPrimary().getVisualBounds();
+            anchoPantalla = pantalla.getWidth();
+            altoPantalla  = pantalla.getHeight();
 
-        DatabaseManager.inicializar();
-        escenario.setFullScreenExitHint("");
+            DatabaseManager.inicializar();
+            escenario.setFullScreenExitHint("");
 
-        mostrarLogin();
+            mostrarLogin();
+        } catch (Throwable t) {
+            StringWriter sw = new StringWriter();
+            t.printStackTrace(new PrintWriter(sw));
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error de inicio");
+            alert.setHeaderText("La aplicación no pudo iniciarse");
+            alert.setContentText(sw.toString());
+            alert.showAndWait();
+            Platform.exit();
+        }
     }
 
     /**
