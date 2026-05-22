@@ -31,30 +31,42 @@ jobs:
         Copy-Item target/eco-clasificador-1.0.jar target/dependency/
         Remove-Item target/dependency/javafx-*-24.jar -Exclude *-win.jar
 
-    - name: Ejecutar jpackage para crear el instalador
+    - name: Ejecutar jpackage (app-image)
       run: |
         jpackage `
-          --type exe `
+          --type app-image `
           --input target/dependency/ `
           --main-jar "eco-clasificador-1.0.jar" `
           --main-class "org.ecoclasificador.Main" `
           --name "EcoClassifier" `
           --dest output/ `
-          --win-dir-chooser `
-          --win-shortcut `
           --java-options "--enable-native-access=ALL-UNNAMED"
 
-    - name: Subir el instalador como artifact (workflow_dispatch)
-      if: github.event_name == 'workflow_dispatch'
+    - name: Subir app-image como artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: EcoClassifier-App
+        path: output/EcoClassifier/
+
+    - name: Generar instalador EXE
+      run: |
+        jpackage `
+          --type exe `
+          --app-image output/EcoClassifier/ `
+          --dest output-installer/ `
+          --win-dir-chooser `
+          --win-shortcut
+
+    - name: Subir instalador EXE como artifact
       uses: actions/upload-artifact@v4
       with:
         name: EcoClassifier-Installer
-        path: output/*.exe
+        path: output-installer/*.exe
 
     - name: Subir el instalador a la Release
       if: github.event_name == 'release'
       uses: softprops/action-gh-release@v2
       with:
-        files: output/*.exe
+        files: output-installer/*.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
