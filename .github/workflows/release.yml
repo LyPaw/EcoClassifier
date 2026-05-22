@@ -26,8 +26,10 @@ jobs:
     - name: Compilar el proyecto con Maven
       run: mvn clean package -DskipTests
 
-    - name: Copiar el JAR del proyecto a dependency
-      run: Copy-Item target/eco-clasificador-1.0.jar target/dependency/
+    - name: Copiar el JAR del proyecto y limpiar duplicados de módulos
+      run: |
+        Copy-Item target/eco-clasificador-1.0.jar target/dependency/
+        Remove-Item target/dependency/javafx-*-24.jar -Exclude *-win.jar
 
     - name: Ejecutar jpackage para crear el instalador
       run: |

@@ -113,6 +113,6 @@ public class AppPrincipal extends Application {
     }
 
     public static void main(String[] args) {
-        launch(args);
+        launch(AppPrincipal.class, args);
     }
 }
